@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   BarChart,
   Bar,
@@ -38,12 +38,11 @@ export default function BudgetVsActualChart({ transactions }: BudgetVsActualChar
   const [data, setData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const fetchBudgetVsActual = async () => {
+  // Use useCallback to memoize the fetchBudgetVsActual function
+  const fetchBudgetVsActual = useCallback(async () => {
     setLoading(true);
     try {
-      const [budgetsRes] = await Promise.all([
-        fetch(`/api/transactions/budget?month=${month}`),
-      ]);
+      const [budgetsRes] = await Promise.all([fetch(`/api/transactions/budget?month=${month}`)]);
 
       const budgets: Budget[] = await budgetsRes.json();
       const actualMap: Record<string, number> = {};
@@ -74,11 +73,11 @@ export default function BudgetVsActualChart({ transactions }: BudgetVsActualChar
     } finally {
       setLoading(false);
     }
-  };
+  }, [month, transactions]); // Make sure to include 'month' and 'transactions' as dependencies
 
   useEffect(() => {
     fetchBudgetVsActual();
-  }, [transactions, month, fetchBudgetVsActual]);
+  }, [fetchBudgetVsActual]); // Now only depends on fetchBudgetVsActual
 
   return (
     <div className="mt-8 border p-4 rounded-xl shadow-md bg-white max-w-4xl w-full">
