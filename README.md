@@ -69,8 +69,6 @@ Welcome to your own **Personal Finance Tracker** – a simple and intuitive web 
   /components
 /lib
   db.ts
-/public
-  screenshot.png
 ```
 ---
 
@@ -80,7 +78,7 @@ This app is deployed on [Vercel](https://vercel.com) for easy and instant previe
 
 ## 🙌 Acknowledgements
 
-Thanks to the open-source community and tools like Next.js, Recharts, and MongoDB for making this possible.
+Thanks to thed tools like Next.js, Recharts, and MongoDB  open-source community an for making this possible.
 
 ---
 
