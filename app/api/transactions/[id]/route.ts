@@ -1,16 +1,18 @@
-// /app/api/transactions/[id]/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import Transaction from "@/models/Transaction";
 import Category from "@/models/Category";
 import { dbConnect } from "@/lib/db";
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  request: NextRequest,
+
+  { params }: { params: { id: string } }
+) {
   await dbConnect();
   const { id } = params;
-  const body = await req.json();
+  const body = await request.json();
   const { amount, date, description, category } = body;
-
+  
   try {
     let categoryId;
     if (category) {
@@ -20,7 +22,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       }
       categoryId = cat._id;
     }
-
+    
     const updated = await Transaction.findByIdAndUpdate(
       id,
       {
@@ -31,7 +33,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       },
       { new: true }
     );
-
+    
     return NextResponse.json(updated);
   } catch (err) {
     console.error(err);
@@ -39,10 +41,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  
+  { params }: { params: { id: string } }
+) {
   await dbConnect();
   const { id } = params;
-
+  
   try {
     await Transaction.findByIdAndDelete(id);
     return NextResponse.json({ message: "Transaction deleted" });

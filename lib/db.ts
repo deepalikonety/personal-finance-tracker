@@ -6,23 +6,25 @@ if (!MONGODB_URI) {
   throw new Error("Please define the MONGODB_URI environment variable");
 }
 
-declare global {
-  namespace NodeJS {
-    interface Global {
-      mongoose: {
-        conn: Connection | null;
-        promise: Promise<Mongoose> | null;
-      };
-    }
-  }
-
-  var mongoose: {
-    conn: Connection | null;
-    promise: Promise<Mongoose> | null;
-  };
+// Define our mongoose cache type
+interface MongooseCache {
+  conn: Connection | null;
+  promise: Promise<Mongoose> | null;
 }
 
-const cached = global.mongoose ?? (global.mongoose = { conn: null, promise: null });
+// Create a simple interface for the global with mongoose property
+interface CustomGlobal {
+  mongoose?: MongooseCache;
+}
+
+// Use a type assertion for the global
+const globalWithMongoose = global as unknown as CustomGlobal;
+
+// Initialize cache using existing global or create new
+const cached: MongooseCache = globalWithMongoose.mongoose || { conn: null, promise: null };
+
+// Store back in global
+globalWithMongoose.mongoose = cached;
 
 export async function dbConnect() {
   if (cached.conn) return cached.conn;
