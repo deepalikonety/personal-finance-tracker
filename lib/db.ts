@@ -7,10 +7,19 @@ if (!MONGODB_URI) {
 }
 
 declare global {
+  namespace NodeJS {
+    interface Global {
+      mongoose: {
+        conn: Connection | null;
+        promise: Promise<Mongoose> | null;
+      };
+    }
+  }
+
   var mongoose: {
     conn: Connection | null;
     promise: Promise<Mongoose> | null;
-  } | undefined;
+  };
 }
 
 const cached = global.mongoose ?? (global.mongoose = { conn: null, promise: null });
