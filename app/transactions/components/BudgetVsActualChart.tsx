@@ -78,7 +78,7 @@ export default function BudgetVsActualChart({ transactions }: BudgetVsActualChar
 
   useEffect(() => {
     fetchBudgetVsActual();
-  }, [transactions, month]);
+  }, [transactions, month, fetchBudgetVsActual]);
 
   return (
     <div className="mt-8 border p-4 rounded-xl shadow-md bg-white max-w-4xl w-full">
