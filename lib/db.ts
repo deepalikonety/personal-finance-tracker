@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Connection, Mongoose } from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 
@@ -6,13 +6,17 @@ if (!MONGODB_URI) {
   throw new Error("Please define the MONGODB_URI environment variable");
 }
 
-// Define a proper type for cached
-interface Cached {
-  conn: mongoose.Connection | null;
-  promise: Promise<mongoose.Mongoose> | null;
+// Extend the global object to safely cache the connection
+declare global {
+  // Allow global.mongoose to exist for caching
+  var mongoose: {
+    conn: Connection | null;
+    promise: Promise<Mongoose> | null;
+  } | undefined;
 }
 
-const cached: Cached = (global as any).mongoose || { conn: null, promise: null };
+// Use the global object for cache (no `any` used here)
+const cached = global.mongoose ?? (global.mongoose = { conn: null, promise: null });
 
 export async function dbConnect() {
   if (cached.conn) return cached.conn;
@@ -23,9 +27,6 @@ export async function dbConnect() {
     });
   }
 
-  // Wait for the promise to resolve and then assign the connection
-  const mongooseInstance = await cached.promise;
-  cached.conn = mongooseInstance.connection;
-
+  cached.conn = (await cached.promise).connection;
   return cached.conn;
 }
