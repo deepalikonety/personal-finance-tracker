@@ -11,9 +11,9 @@ import {
 import { Transaction } from "@/app/types/transactions";
 
 // Helper to normalize any category format into a string
-const normalizeCategory = (cat: any): string => {
+const normalizeCategory = (cat: string | { label?: string; name?: string } | null | undefined): string => {
   if (typeof cat === "string") return cat;
-  if (typeof cat === "object") return cat.label || cat.name || JSON.stringify(cat);
+  if (typeof cat === "object" && cat !== null) return cat.label || cat.name || JSON.stringify(cat);
   return "Uncategorized";
 };
 
@@ -23,36 +23,37 @@ type Budget = {
   month: string;
 };
 
+type ChartData = {
+  category: string;
+  budgeted: number;
+  actual: number;
+};
+
 type BudgetVsActualChartProps = {
   transactions: Transaction[];
 };
 
-export default function BudgetVsActualChart({
-  transactions,
-}: BudgetVsActualChartProps) {
-  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function BudgetVsActualChart({ transactions }: BudgetVsActualChartProps) {
+  const [month, setMonth] = useState<string>(new Date().toISOString().slice(0, 7));
+  const [data, setData] = useState<ChartData[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const fetchBudgetVsActual = async () => {
     setLoading(true);
     try {
-      const [budgetsRes, transactionsRes] = await Promise.all([
+      const [budgetsRes] = await Promise.all([
         fetch(`/api/transactions/budget?month=${month}`),
-        fetch(`/api/transactions?month=${month}`),
       ]);
 
       const budgets: Budget[] = await budgetsRes.json();
       const actualMap: Record<string, number> = {};
 
-      // Use the incoming transactions prop to calculate actual spending
       transactions.forEach((tx) => {
         const cat = normalizeCategory(tx.category);
         actualMap[cat] = (actualMap[cat] || 0) + tx.amount;
       });
 
-      // Now, map budgets only if the budget exists for the month
-      const chartData = budgets.map((b) => {
+      const chartData: ChartData[] = budgets.map((b) => {
         const cat = normalizeCategory(b.category);
         return {
           category: cat,
@@ -61,7 +62,6 @@ export default function BudgetVsActualChart({
         };
       });
 
-      // Add extra categories (no budget set), only if a category has actual transactions
       for (const [cat, amt] of Object.entries(actualMap)) {
         if (!chartData.find((d) => d.category === cat)) {
           chartData.push({ category: cat, budgeted: 0, actual: amt });
@@ -77,9 +77,8 @@ export default function BudgetVsActualChart({
   };
 
   useEffect(() => {
-    // Re-fetch the data whenever the transactions prop changes or month changes
     fetchBudgetVsActual();
-  }, [transactions, month]);  // This ensures the chart updates when transactions are added
+  }, [transactions, month]);
 
   return (
     <div className="mt-8 border p-4 rounded-xl shadow-md bg-white max-w-4xl w-full">
@@ -101,7 +100,7 @@ export default function BudgetVsActualChart({
           <BarChart data={data}>
             <XAxis dataKey="category" />
             <YAxis />
-            <Tooltip formatter={(value: any) => `₹${value.toLocaleString("en-IN")}`} />
+            <Tooltip formatter={(value: number) => `₹${value.toLocaleString("en-IN")}`} />
             <Legend />
             <Bar dataKey="budgeted" fill="#8884d8" name="Budgeted" />
             <Bar dataKey="actual" fill="#82ca9d" name="Actual" />

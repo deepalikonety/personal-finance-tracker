@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 type Budget = {
   category: string | { label?: string; name?: string };
@@ -15,7 +15,7 @@ type Transaction = {
 };
 
 // Normalize category field to plain string
-const normalizeCategory = (cat: any): string => {
+const normalizeCategory = (cat: string | { label?: string; name?: string }): string => {
   if (typeof cat === "string") return cat;
   if (typeof cat === "object") return cat.label || cat.name || JSON.stringify(cat);
   return "Uncategorized";
@@ -26,7 +26,7 @@ export default function SpendingInsights() {
   const [insights, setInsights] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchInsights = async () => {
+  const fetchInsights = useCallback(async () => {
     setLoading(true);
 
     // Fetch only if there's budget or transactions for that month
@@ -77,11 +77,11 @@ export default function SpendingInsights() {
 
     setInsights(newInsights);
     setLoading(false);
-  };
+  }, [month]); // Added month as dependency
 
   useEffect(() => {
     fetchInsights();
-  }, [month]); // Fetch data on month change
+  }, [month, fetchInsights]); // Now using fetchInsights properly
 
   return (
     <div className="mt-8 border p-4 rounded-xl shadow-md bg-white max-w-2xl mx-auto space-y-4">

@@ -44,7 +44,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to create transaction" }, { status: 500 });
   }
 }
-function connectDB() {
-  throw new Error("Function not implemented.");
-}
-
